@@ -1,5 +1,7 @@
+import os
 import argparse
 import pandas as pd
+from pathlib import Path
 from data_util.data_loader import Data_load
 from data_util.data_vectorizer import Data_preprocessing
 
@@ -8,6 +10,8 @@ def argparser():
     parser = argparse.ArgumentParser(description='Parameters')
     parser.add_argument('--dataset_path', help='data_directory', metavar='Path',
                         default='D:/content_search/data_util/data/ArticleDataset.json')
+    parser.add_argument('--output_path', help='output_path', metavar='Path',
+                        default='D:/content_matching/data_util/data/')
     args = parser.parse_args()
     return args
 
@@ -31,8 +35,15 @@ def main():
     raw_df = Data_load(args.dataset_path)
     raw_df = raw_df.json_to_dataframe()
     raw_df2 = drop_columns(raw_df, ['date', 'unknown'])
-    preprocessed_data = data_pre_vectotrization(raw_df2)
-    print(preprocessed_data.head())
+    filename = 'processed_file.csv'
+    try:
+        with open("{}/{}".format(args.output_path, filename)) as f:
+            print('Processed File Available.')
+    except:
+        print('Creating Processed File...')
+        processed_data = data_pre_vectotrization(raw_df2)
+        processed_data.to_csv(("{}/{}".format(args.output_path, filename)), index=False)
+
 
 if __name__ == '__main__':
     main()
