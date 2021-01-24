@@ -1,11 +1,10 @@
 import json
-import numpy as np
 import pandas as pd
 
 
 class Data_load:
-    def __init__(self, path):
-        self.location = path
+    def __init__(self, args):
+        self.location = args.dataset_path
 
     def json_to_dataframe(self):
         raw_data = open(self.location)
