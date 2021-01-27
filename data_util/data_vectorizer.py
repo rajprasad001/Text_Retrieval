@@ -1,68 +1,39 @@
 import string
 import nltk
-from nltk.corpus import stopwords
+import pandas as pd
 from nltk.stem import WordNetLemmatizer
-from nltk.tokenize import word_tokenize
 from sklearn.feature_extraction.text import TfidfVectorizer
+
 nltk.download('wordnet')
 
-
-stop_words = stopwords.words('english')
 lemmatizer = WordNetLemmatizer()
 
 
-class Data_preprocessing:
+class Data_Preprocessing:
     def __init__(self, data):
         self.data = data
-
-    def lower_case(self):
-        data = self.data
-        temp_list = []
-        for content in data['text']:
-            temp = content.lower()
-            temp_list.append(temp)
-        data['processed_text'] = temp_list
-        print(' 1. Lower casing successful.')
-        return data
 
     def punctuation_removal(self):
         data = self.data
         temp_list = []
-        for content in data['processed_text']:
+        for content in data['text']:
             for c in string.punctuation:
-                content = content.replace(c, "")
+                content = content.replace(c, " ")
             temp_list.append(content)
-        data = data.drop(columns='processed_text', axis=1)
         data['processed_text'] = temp_list
-        print(' 2. Punctuation Removal successful.')
-        return data
-
-    def stopword_removal(self):
-        data = self.data
-        temp_list = []
-        for content in data['processed_text']:
-            word_tokens = word_tokenize(content)
-            clean_text = [word for word in word_tokens if not word in stop_words]
-            temp_list.append(clean_text)
-        data = data.drop(columns='processed_text', axis=1)
-        data['processed_text'] = temp_list
-        print(' 3. Stopwords removal successful')
+        print(' 1. Punctuation Removal successful.')
         return data
 
     def lemmatizing(self):
         data = self.data
-        temp_list = []
         temp_sent = []
         for content in data['processed_text']:
-            for word in content:
-                lem_word = lemmatizer.lemmatize(word, pos='v')
-                #print("{0:20}{1:20}".format(word,lem_word))
-                temp_sent.append(lem_word)
-            temp_list.append(temp_sent)
-            temp_sent = []
+            word_list = nltk.word_tokenize(content)
+            lemmatized_output = ' '.join([lemmatizer.lemmatize(w) for w in word_list])
+            temp_sent.append(lemmatized_output)
         data = data.drop(columns='processed_text', axis=1)
-        data['processed_text'] = temp_list
-        print(' 4. Lemmatization Successful')
+        data['processed_text'] = temp_sent
+        print(' 2. Lemmatization Successful')
         return data
 
 
@@ -71,11 +42,29 @@ class Vectorization:
         self.preprocessed_data = data
 
     def vec_gen(self):
+        content_list = []
         dataframe = self.preprocessed_data
-        tfidf_vectorizer = TfidfVectorizer()
-        fit_vect = tfidf_vectorizer.fit_transform(dataframe.processd_text.values)
-        print (fit_vect)
-        return fit_vect
+
+        for content in dataframe['processed_text']:
+            content_list.append(content)
+
+        tf_idf_vectorizer = TfidfVectorizer(lowercase=True, stop_words='english')
+        doc_term_matrix = tf_idf_vectorizer.fit_transform(content_list)
+        return tf_idf_vectorizer, doc_term_matrix
 
 
+class User_Input_Vectorizer:
+    def __init__(self, data, tf_idf_vectorizer):
+        self.user_input = data
+        self.tfidf_vectorizer = tf_idf_vectorizer
 
+    def input_preprocessing(self):
+        tfidf_vectorizer = self.tfidf_vectorizer
+        input_text = self.user_input
+        for punc in string.punctuation:
+            input_text = input_text.replace(punc, ' ')
+        tokenized_text = nltk.word_tokenize(input_text)
+        lemmatized_output = ' '.join([lemmatizer.lemmatize(w) for w in tokenized_text])
+        input_term_matrix = tfidf_vectorizer.transform([lemmatized_output])
+        input_embedding = pd.DataFrame(input_term_matrix.toarray(), columns=tfidf_vectorizer.get_feature_names())
+        return input_embedding
