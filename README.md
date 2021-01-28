@@ -17,4 +17,6 @@
    - Sorting top matching documents on the basis of Cosine Similarity between the document and the querry.
    
 ## Dependencies
-clone the repository by using git clone 
+- clone the repository by using `git clone https://github.com/rajprasad001/Text_Retrieval.git`
+- install the dependecies using `pip install -r requirement.txt`
+- run `main.py`
