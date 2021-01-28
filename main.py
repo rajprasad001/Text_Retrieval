@@ -1,5 +1,6 @@
 import argparse
 import pandas as pd
+from pathlib import Path
 from similarity_check import Similarity_Metric
 from data_util.data_loader import Data_load
 from data_util.data_vectorizer import Data_Preprocessing
@@ -78,6 +79,9 @@ def main():
     print()
     print('Providing 100 relevant documents.')
     recommended_docs = recomendation_df.head(100)
+    recommended_docs = recommended_docs.drop('processed_text', axis=1)
+    recommended_docs.to_csv(Path(args.output_path+'recommended_docs.csv'), index=False)
+    
     print(recommended_docs)
 
 
