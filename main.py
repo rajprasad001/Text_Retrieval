@@ -60,21 +60,26 @@ def similarity_score(data1, data2):
 def main():
     args = argparser()
 
+    # Data Pre-processing.
     raw_df = Data_load(args)
     raw_df = raw_df.json_to_dataframe()
 
     raw_df2 = drop_columns(raw_df, ['date', 'unknown'])
     processed_data = data_pre_vectotrization(raw_df2)
 
+    # Vectorizing the corpus.
     tfidf_vectorizer, vector_embedding = embedding_data(processed_data)
 
+    # Vectorizing user_querry on the basis of tfidf_vectorizer model.
     # user_input = args.search
     user_input = 'quantum computing software from IBM.'
     vectorized_user_input = transform_user_input(user_input, tfidf_vectorizer)
 
+    # Finding similarity between each instance and user_querry.
     similarity_score_list = similarity_score(vector_embedding, vectorized_user_input)
     raw_df2['similarity_score'] = similarity_score_list
 
+    # Recommending top 100 instances.
     recomendation_df = raw_df2.sort_values('similarity_score', ascending=False)
     print()
     print('Providing 100 relevant documents.')
